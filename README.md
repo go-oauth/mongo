@@ -1,6 +1,6 @@
 # MongoUserRepository for oauth2
 - MongoUserRepository is an implementation of [UserRepository](https://github.com/common-go/oauth2/blob/master/user_repository.go)
-- MongoIntegrationConfigurationRepository is an implementation of [IntegrationConfigurationRepository](https://github.com/common-go/oauth2/blob/master/integration_configuration_repository.go) 
+- MongoConfigurationRepository is an implementation of [ConfigurationRepository](https://github.com/common-go/oauth2/blob/master/configuration_repository.go) 
 
 ## Installation
 

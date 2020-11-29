@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type MongoPersonInfoRepository struct {
+type MongoUserRepository struct {
 	Collection      *mongo.Collection
 	Prefix          string
 	ActivatedStatus string
@@ -30,7 +30,7 @@ type MongoPersonInfoRepository struct {
 	Schema          *OAuth2SchemaConfig
 }
 
-func NewMongoUserRepositoryByConfig(db *mongo.Database, collectionName, prefix string, activatedStatus string, services []string, c OAuth2SchemaConfig, genderMapper OAuth2GenderMapper) *MongoPersonInfoRepository {
+func NewMongoUserRepositoryByConfig(db *mongo.Database, collectionName, prefix string, activatedStatus string, services []string, c OAuth2SchemaConfig, genderMapper OAuth2GenderMapper) *MongoUserRepository {
 	if len(c.UserName) == 0 {
 		c.UserName = "userName"
 	}
@@ -50,7 +50,7 @@ func NewMongoUserRepositoryByConfig(db *mongo.Database, collectionName, prefix s
 		c.Active = "Active"
 	}
 	collection := db.Collection(collectionName)
-	m := &MongoPersonInfoRepository{
+	m := &MongoUserRepository{
 		Collection:      collection,
 		Prefix:          prefix,
 		ActivatedStatus: activatedStatus,
@@ -63,10 +63,10 @@ func NewMongoUserRepositoryByConfig(db *mongo.Database, collectionName, prefix s
 	return m
 }
 
-func NewMongoUserRepository(db *mongo.Database, collectionName, prefix, activatedStatus string, services []string, pictureName, displayName, givenName, familyName, middleName, genderName string) *MongoPersonInfoRepository {
+func NewMongoUserRepository(db *mongo.Database, collectionName, prefix, activatedStatus string, services []string, pictureName, displayName, givenName, familyName, middleName, genderName string) *MongoUserRepository {
 	collection := db.Collection(collectionName)
 
-	m := &MongoPersonInfoRepository{
+	m := &MongoUserRepository{
 		Collection:      collection,
 		Prefix:          prefix,
 		ActivatedStatus: activatedStatus,
@@ -91,7 +91,7 @@ func NewMongoUserRepository(db *mongo.Database, collectionName, prefix, activate
 	return m
 }
 
-func (r *MongoPersonInfoRepository) GetUser(ctx context.Context, email string) (string, bool, bool, error) {
+func (r *MongoUserRepository) GetUser(ctx context.Context, email string) (string, bool, bool, error) {
 	// query := bson.M{"$or": []bson.M{{"userName": email}, {"email": email}, {"linkedinEmail": email}, {"facebookEmail": email}, {"googleEmail": email}}}
 	queries := []bson.M{{r.UserName: email}, {r.EmailName: email}, {r.Prefix + r.OAuth2EmailName: email}}
 	for _, sv := range r.Services {
@@ -129,7 +129,7 @@ func (r *MongoPersonInfoRepository) GetUser(ctx context.Context, email string) (
 	return userId, disable, suspended, nil
 }
 
-func (r *MongoPersonInfoRepository) Update(ctx context.Context, id, email, account string) (bool, error) {
+func (r *MongoUserRepository) Update(ctx context.Context, id, email, account string) (bool, error) {
 	user := make(map[string]interface{})
 
 	user[r.Prefix+r.OAuth2EmailName] = email
@@ -152,7 +152,7 @@ func (r *MongoPersonInfoRepository) Update(ctx context.Context, id, email, accou
 	return result.ModifiedCount+result.UpsertedCount+result.MatchedCount > 0, err
 }
 
-func (r *MongoPersonInfoRepository) Insert(ctx context.Context, id string, user User) (bool, error) {
+func (r *MongoUserRepository) Insert(ctx context.Context, id string, user User) (bool, error) {
 	userMap := r.userToMap(ctx, id, user)
 	_, err := r.Collection.InsertOne(ctx, userMap)
 	if err != nil {
@@ -166,7 +166,7 @@ func (r *MongoPersonInfoRepository) Insert(ctx context.Context, id string, user 
 	return false, nil
 }
 
-func (r *MongoPersonInfoRepository) userToMap(ctx context.Context, id string, user User) map[string]interface{} {
+func (r *MongoUserRepository) userToMap(ctx context.Context, id string, user User) map[string]interface{} {
 	userMap := UserToMap(ctx, id, user, r.GenderMapper, r.Schema)
 
 	userMap["_id"] = id
